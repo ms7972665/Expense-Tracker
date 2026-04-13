@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ExpenseFlow — Smart Expense Tracker</title>
+    <meta name="description"
+        content="Track your expenses effortlessly with ExpenseFlow. Beautiful analytics, smart categories, and powerful insights for your finances." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@600;700;800;900&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+    <!-- ============ SPLASH SCREEN ============ -->
+    <div id="splash-screen" class="splash-screen">
+        <div class="splash-content">
+            <div class="splash-logo">
+                <div class="splash-icon-ring">
+                    <div class="splash-icon-ring-inner">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <h1 class="splash-title">Expense<span>Flow</span></h1>
+            <p class="splash-tagline">Smart money tracking, beautifully designed</p>
+            <div class="splash-loader">
+                <div class="splash-loader-bar"></div>
+            </div>
+        </div>
+        <div class="splash-particles" id="splash-particles"></div>
+    </div>
+
+    <!-- ============ AUTH SCREEN ============ -->
+    <div id="auth-screen" class="auth-screen hidden">
+        <div class="auth-bg">
+            <div class="auth-blob auth-blob-1"></div>
+            <div class="auth-blob auth-blob-2"></div>
+            <div class="auth-blob auth-blob-3"></div>
+        </div>
+        <div class="auth-container">
+            <div class="auth-card glass-card">
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                    </div>
+                    <h2 class="auth-title" id="auth-title">Welcome back</h2>
+                    <p class="auth-subtitle" id="auth-subtitle">Sign in to continue tracking your expenses</p>
+                </div>
+
+                <form id="auth-form" class="auth-form">
+                    <div id="auth-name-field" class="form-group hidden">
+                        <label for="auth-name">Full Name</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="user" class="input-icon"></i>
+                            <input type="text" id="auth-name" placeholder="John Doe" autocomplete="name" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="auth-email">Email Address</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="mail" class="input-icon"></i>
+                            <input type="email" id="auth-email" placeholder="you@example.com" required
+                                autocomplete="email" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="auth-password">Password</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="lock" class="input-icon"></i>
+                            <input type="password" id="auth-password" placeholder="••••••••" required
+                                autocomplete="current-password" />
+                            <button type="button" class="password-toggle" id="password-toggle">
+                                <i data-lucide="eye" class="toggle-icon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full" id="auth-submit-btn">
+                        <span>Sign In</span>
+                        <i data-lucide="arrow-right"></i>
+                    </button>
+                </form>
+
+                <div class="auth-divider">
+                    <span>or continue with</span>
+                </div>
+
+                <button class="btn btn-google btn-full" id="google-auth-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24">
+                        <path
+                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
+                            fill="#4285F4" />
+                        <path
+                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                            fill="#34A853" />
+                        <path
+                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                            fill="#FBBC05" />
+                        <path
+                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                            fill="#EA4335" />
+                    </svg>
+                    <span>Google</span>
+                </button>
+
+                <p class="auth-toggle">
+                    <span id="auth-toggle-text">Don't have an account?</span>
+                    <button type="button" class="link-btn" id="auth-toggle-btn">Sign up</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ MAIN APP ============ -->
+    <div id="main-app" class="main-app hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                    <span class="sidebar-logo-text">Expense<span>Flow</span></span>
+                </div>
+                <button class="sidebar-close-btn" id="sidebar-close-btn">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-view="dashboard" id="nav-dashboard">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-item" data-view="transactions" id="nav-transactions">
+                    <i data-lucide="receipt"></i>
+                    <span>Transactions</span>
+                </button>
+                <button class="nav-item" data-view="analytics" id="nav-analytics">
+                    <i data-lucide="bar-chart-3"></i>
+                    <span>Analytics</span>
+                </button>
+                <button class="nav-item" data-view="settings" id="nav-settings">
+                    <i data-lucide="settings"></i>
+                    <span>Settings</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="user-avatar" id="sidebar-user-avatar">JD</div>
+                    <div class="user-info">
+                        <span class="user-name" id="sidebar-user-name">John Doe</span>
+                        <span class="user-email" id="sidebar-user-email">john@example.com</span>
+                    </div>
+                </div>
+                <button class="btn-icon" id="logout-btn" title="Logout">
+                    <i data-lucide="log-out"></i>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="btn-icon hamburger" id="hamburger-btn">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <div>
+                        <h1 class="topbar-title" id="topbar-title">Dashboard</h1>
+                        <p class="topbar-subtitle" id="topbar-subtitle">Welcome back! Here's your financial overview.
+                        </p>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn-icon" id="theme-toggle-btn" title="Toggle theme">
+                        <i data-lucide="moon" id="theme-icon"></i>
+                    </button>
+                    <button class="btn-icon notification-btn" id="notification-btn" title="Notifications">
+                        <i data-lucide="bell"></i>
+                        <span class="notification-badge">3</span>
+                    </button>
+                    <div class="topbar-user" id="topbar-user-avatar">JD</div>
+                </div>
+            </header>
+
+            <!-- Dashboard View -->
+            <section id="view-dashboard" class="view active">
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card glass-card" id="stat-total-spent">
+                        <div class="stat-icon stat-icon-primary">
+                            <i data-lucide="wallet"></i>
+                        </div>
+                        <div class="stat-info">
+                            <p class="stat-label">Total Spent</p>
+                            <h3 class="stat-value" id="stat-total-value">$0</h3>
+                            <p class="stat-change negative" id="stat-total-change">
+                                <i data-lucide="trending-up"></i>
+                                <span>+12% from last month</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-card" id="stat-avg-daily">
+                        <div class="stat-icon stat-icon-success">
+                            <i data-lucide="calculator"></i>
+                        </div>
+                        <div class="stat-info">
+                            <p class="stat-label">Avg. Daily</p>
+                            <h3 class="stat-value" id="stat-avg-value">$0</h3>
+                            <p class="stat-change positive" id="stat-avg-change">
+                                <i data-lucide="trending-down"></i>
+                                <span>-5% from last month</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-card" id="stat-top-category">
+                        <div class="stat-icon stat-icon-warning">
+                            <i data-lucide="tag"></i>
+                        </div>
+                        <div class="stat-info">
+                            <p class="stat-label">Top Category</p>
+                            <h3 class="stat-value" id="stat-category-value">—</h3>
+                            <p class="stat-change neutral" id="stat-category-change">
+                                <span>Most spent category</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-card" id="stat-transactions">
+                        <div class="stat-icon stat-icon-danger">
+                            <i data-lucide="activity"></i>
+                        </div>
+                        <div class="stat-info">
+                            <p class="stat-label">Transactions</p>
+                            <h3 class="stat-value" id="stat-transactions-value">0</h3>
+                            <p class="stat-change neutral" id="stat-transactions-change">
+                                <span>This month</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="charts-row">
+                    <div class="chart-card glass-card">
+                        <div class="chart-header">
+                            <h3>Spending Trend</h3>
+                            <div class="chart-actions">
+                                <select id="trend-period" class="chart-select">
+                                    <option value="7">Last 7 days</option>
+                                    <option value="14">Last 14 days</option>
+                                    <option value="30" selected>Last 30 days</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="chart-body">
+                            <canvas id="trend-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card glass-card chart-card-small">
+                        <div class="chart-header">
+                            <h3>By Category</h3>
+                        </div>
+                        <div class="chart-body chart-body-donut">
+                            <canvas id="category-donut-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="recent-transactions glass-card">
+                    <div class="section-header">
+                        <h3>Recent Transactions</h3>
+                        <button class="link-btn" id="view-all-transactions-btn">View All <i
+                                data-lucide="arrow-right"></i></button>
+                    </div>
+                    <div class="transactions-list" id="recent-transactions-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Transactions View -->
+            <section id="view-transactions" class="view">
+                <div class="view-header">
+                    <div class="filters-bar glass-card">
+                        <div class="filter-group">
+                            <label>From</label>
+                            <input type="date" id="filter-date-from" class="filter-input" />
+                        </div>
+                        <div class="filter-group">
+                            <label>To</label>
+                            <input type="date" id="filter-date-to" class="filter-input" />
+                        </div>
+                        <div class="filter-group">
+                            <label>Category</label>
+                            <select id="filter-category" class="filter-input">
+                                <option value="all">All Categories</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Sort By</label>
+                            <select id="filter-sort" class="filter-input">
+                                <option value="date-desc">Newest First</option>
+                                <option value="date-asc">Oldest First</option>
+                                <option value="amount-desc">Highest Amount</option>
+                                <option value="amount-asc">Lowest Amount</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-outline" id="export-csv-btn">
+                            <i data-lucide="download"></i>
+                            <span>Export CSV</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="transactions-full-list glass-card" id="full-transactions-list">
+                    <!-- Populated by JS -->
+                </div>
+            </section>
+
+            <!-- Analytics View -->
+            <section id="view-analytics" class="view">
+                <div class="analytics-grid">
+                    <div class="chart-card glass-card analytics-chart-full">
+                        <div class="chart-header">
+                            <h3>Monthly Spending Trend</h3>
+                            <select id="analytics-trend-period" class="chart-select">
+                                <option value="7">Last 7 days</option>
+                                <option value="14">Last 14 days</option>
+                                <option value="30" selected>Last 30 days</option>
+                            </select>
+                        </div>
+                        <div class="chart-body chart-body-large">
+                            <canvas id="analytics-line-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card glass-card">
+                        <div class="chart-header">
+                            <h3>Most Used Categories</h3>
+                        </div>
+                        <div class="chart-body chart-body-large">
+                            <canvas id="analytics-bar-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card glass-card">
+                        <div class="chart-header">
+                            <h3>Spending Breakdown</h3>
+                        </div>
+                        <div class="chart-body chart-body-large chart-body-donut">
+                            <canvas id="analytics-pie-chart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Top Expenses -->
+                    <div class="chart-card glass-card analytics-chart-full">
+                        <div class="chart-header">
+                            <h3>Top Expenses</h3>
+                        </div>
+                        <div class="top-expenses-list" id="top-expenses-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings View -->
+            <section id="view-settings" class="view">
+                <div class="settings-grid">
+                    <div class="settings-card glass-card">
+                        <div class="settings-card-header">
+                            <i data-lucide="palette"></i>
+                            <h3>Appearance</h3>
+                        </div>
+                        <div class="settings-group">
+                            <div class="setting-row">
+                                <div>
+                                    <p class="setting-label">Dark Mode</p>
+                                    <p class="setting-desc">Switch between light and dark themes</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="setting-dark-mode" checked />
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card glass-card">
+                        <div class="settings-card-header">
+                            <i data-lucide="coins"></i>
+                            <h3>Currency</h3>
+                        </div>
+                        <div class="settings-group">
+                            <div class="setting-row">
+                                <div>
+                                    <p class="setting-label">Currency Symbol</p>
+                                    <p class="setting-desc">Choose your preferred currency</p>
+                                </div>
+                                <select id="setting-currency" class="setting-select">
+                                    <option value="$">$ USD</option>
+                                    <option value="€">€ EUR</option>
+                                    <option value="£">£ GBP</option>
+                                    <option value="₹">₹ INR</option>
+                                    <option value="¥">¥ JPY</option>
+                                    <option value="₩">₩ KRW</option>
+                                    <option value="A$">A$ AUD</option>
+                                    <option value="C$">C$ CAD</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card glass-card">
+                        <div class="settings-card-header">
+                            <i data-lucide="database"></i>
+                            <h3>Data Management</h3>
+                        </div>
+                        <div class="settings-group">
+                            <div class="setting-row">
+                                <div>
+                                    <p class="setting-label">Export All Data</p>
+                                    <p class="setting-desc">Download all your expenses as CSV</p>
+                                </div>
+                                <button class="btn btn-outline btn-sm" id="setting-export-btn">
+                                    <i data-lucide="download"></i> Export
+                                </button>
+                            </div>
+                            <div class="setting-row">
+                                <div>
+                                    <p class="setting-label">Load Sample Data</p>
+                                    <p class="setting-desc">Load 30 days of sample expenses</p>
+                                </div>
+                                <button class="btn btn-outline btn-sm" id="setting-sample-data-btn">
+                                    <i data-lucide="sparkles"></i> Load
+                                </button>
+                            </div>
+                            <div class="setting-row">
+                                <div>
+                                    <p class="setting-label">Clear All Data</p>
+                                    <p class="setting-desc">Permanently delete all expense data</p>
+                                </div>
+                                <button class="btn btn-danger btn-sm" id="setting-clear-data-btn">
+                                    <i data-lucide="trash-2"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card glass-card">
+                        <div class="settings-card-header">
+                            <i data-lucide="user"></i>
+                            <h3>Account</h3>
+                        </div>
+                        <div class="settings-group">
+                            <div class="setting-row">
+                                <div>
+                                    <p class="setting-label">Profile Name</p>
+                                    <p class="setting-desc" id="settings-user-name">John Doe</p>
+                                </div>
+                                <button class="btn btn-outline btn-sm" id="setting-edit-name-btn">
+                                    <i data-lucide="edit-3"></i> Edit
+                                </button>
+                            </div>
+                            <div class="setting-row">
+                                <div>
+                                    <p class="setting-label">Sign Out</p>
+                                    <p class="setting-desc">Log out of your account</p>
+                                </div>
+                                <button class="btn btn-outline btn-sm" id="setting-logout-btn">
+                                    <i data-lucide="log-out"></i> Logout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- FAB - Floating Action Button -->
+        <button class="fab" id="fab-add-expense" title="Add Expense">
+            <i data-lucide="plus"></i>
+        </button>
+
+        <!-- Add Expense Modal -->
+        <div class="modal-overlay" id="expense-modal-overlay">
+            <div class="modal glass-card" id="expense-modal">
+                <div class="modal-header">
+                    <h3 id="modal-title">Add Expense</h3>
+                    <button class="btn-icon" id="modal-close-btn">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <form id="expense-form" class="modal-form">
+                    <div class="form-group">
+                        <label for="expense-amount">Amount</label>
+                        <div class="input-wrapper input-wrapper-amount">
+                            <span class="currency-prefix" id="currency-prefix">$</span>
+                            <input type="number" id="expense-amount" placeholder="0.00" step="0.01" min="0.01"
+                                required />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="expense-description">Description</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="file-text" class="input-icon"></i>
+                            <input type="text" id="expense-description" placeholder="What did you spend on?" required />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <div class="category-picker" id="category-picker">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="expense-date">Date</label>
+                            <div class="input-wrapper">
+                                <i data-lucide="calendar" class="input-icon"></i>
+                                <input type="date" id="expense-date" required />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="expense-payment">Payment</label>
+                            <div class="input-wrapper">
+                                <i data-lucide="credit-card" class="input-icon"></i>
+                                <select id="expense-payment" class="select-input">
+                                    <option value="cash">Cash</option>
+                                    <option value="card">Card</option>
+                                    <option value="upi">UPI</option>
+                                    <option value="bank">Bank Transfer</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="expense-notes">Notes (Optional)</label>
+                        <div class="input-wrapper">
+                            <textarea id="expense-notes" placeholder="Any additional notes..." rows="2"></textarea>
+                        </div>
+                    </div>
+                    <input type="hidden" id="expense-edit-id" value="" />
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-ghost" id="modal-cancel-btn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i data-lucide="check"></i>
+                            <span id="modal-submit-text">Add Expense</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Name Modal -->
+        <div class="modal-overlay" id="name-modal-overlay">
+            <div class="modal glass-card modal-sm">
+                <div class="modal-header">
+                    <h3>Edit Profile Name</h3>
+                    <button class="btn-icon" id="name-modal-close-btn"><i data-lucide="x"></i></button>
+                </div>
+                <form id="name-form" class="modal-form">
+                    <div class="form-group">
+                        <label for="new-name">Your Name</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="user" class="input-icon"></i>
+                            <input type="text" id="new-name" placeholder="Enter your name" required />
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-ghost" id="name-cancel-btn">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><i
+                                data-lucide="check"></i><span>Save</span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Confirm Modal -->
+        <div class="modal-overlay" id="confirm-modal-overlay">
+            <div class="modal glass-card modal-sm">
+                <div class="modal-header">
+                    <h3 id="confirm-title">Confirm</h3>
+                    <button class="btn-icon" id="confirm-modal-close-btn"><i data-lucide="x"></i></button>
+                </div>
+                <p class="confirm-message" id="confirm-message">Are you sure?</p>
+                <div class="modal-actions">
+                    <button class="btn btn-ghost" id="confirm-cancel-btn">Cancel</button>
+                    <button class="btn btn-danger" id="confirm-ok-btn">Confirm</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Nav (Mobile) -->
+        <nav class="bottom-nav" id="bottom-nav">
+            <button class="bottom-nav-item active" data-view="dashboard">
+                <i data-lucide="layout-dashboard"></i>
+                <span>Home</span>
+            </button>
+            <button class="bottom-nav-item" data-view="transactions">
+                <i data-lucide="receipt"></i>
+                <span>History</span>
+            </button>
+            <button class="bottom-nav-item fab-placeholder" id="bottom-fab-placeholder">
+                <div class="bottom-fab-btn">
+                    <i data-lucide="plus"></i>
+                </div>
+                <span>Add</span>
+            </button>
+            <button class="bottom-nav-item" data-view="analytics">
+                <i data-lucide="bar-chart-3"></i>
+                <span>Analytics</span>
+            </button>
+            <button class="bottom-nav-item" data-view="settings">
+                <i data-lucide="settings"></i>
+                <span>Settings</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="firebase-config.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
