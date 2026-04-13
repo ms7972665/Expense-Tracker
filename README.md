@@ -207,11 +207,11 @@ Customize the application with:
 
 # 👩‍💻 Author
 
-**Indhumithra M**
+**Mamatha Sri S**
 
-📧 Email: [indhumithra2005@gmail.com](mailto:indhumithra2005@gmail.com)
-🔗 LinkedIn: [https://www.linkedin.com/in/indhumithra](https://www.linkedin.com/in/indhumithra)
-💻 GitHub: [https://github.com/Indhumithra](https://github.com/Indhumithra)
+📧 Email: [ms7972665@gmail.com](mailto:ms7972665@gmail.com)
+🔗 LinkedIn: [https://www.linkedin.com/in/mamatha-sri-srinivasulu-255931309](https://www.linkedin.com/in/mamatha-sri-srinivasulu-255931309)
+💻 GitHub: [https://github.com/ms7972665](https://github.com/ms7972665)
 
 ---
 
