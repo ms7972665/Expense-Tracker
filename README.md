@@ -113,7 +113,7 @@ The repository includes a template configuration file.
 ### 1️⃣ Clone the repository
 
 ```bash
-git clone https://github.com/Indhumithra/expenseflow.git
+https://github.com/ms7972665
 ```
 
 ### 2️⃣ Open the project
